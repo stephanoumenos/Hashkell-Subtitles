@@ -93,7 +93,7 @@ readMovie fp = withBinaryFile fp ReadMode $ \h -> do
     fs <- hFileSize h
     return $ Movie {fileName = takeBaseName fp, fileSize = show fs, hash = hash}
 
--- uses interleaved IO to write the response body to a file in constant memory space.
+-- "uses interleaved IO to write the response body to a file in constant memory space."
 downloadQueryResult :: Manager -> Movie -> QueryResult -> IO ()
 downloadQueryResult manager movie q = do
     request <- parseRequest $ subDownloadLink q
