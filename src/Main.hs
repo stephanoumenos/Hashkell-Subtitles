@@ -7,7 +7,7 @@ import           Control.Exception        (bracket)
 import           Control.Applicative      (empty)
 import           System.Environment       (getArgs)
 import           System.IO                (withBinaryFile, hSeek, hFileSize, Handle, IOMode(ReadMode), SeekMode(AbsoluteSeek, SeekFromEnd))
-import           System.FilePath          (takeBaseName)
+import           System.FilePath          (takeBaseName, takeDirectory)
 import qualified Data.ByteString.Lazy as B(hGet, unpack, append)
 import           Data.Binary.Get          (runGet,getWord64le)
 import           Data.Binary.Put          (runPut,putWord64le)
@@ -15,22 +15,26 @@ import           Data.Word                (Word64)
 import           Control.Monad            (foldM)
 import           Data.Bits.Utils          (w82s)
 import           Data.Hex                 (hex)
+import           Data.Conduit.Zlib        (ungzip)
 import           Data.Digest.Pure.MD5     (md5, MD5Digest)
 import           Network.HTTP.Simple      (parseRequest, setRequestHeader, httpJSON, getResponseBody, Response)
 import           Network.HTTP.Conduit     (simpleHttp, httpLbs, responseStatus, responseBody, http, Manager)
-import           Data.Conduit.Binary      (sinkFile)
+import           Network.HTTP.Client      (defaultManagerSettings, newManager)
+import           Data.Conduit.Binary      (sinkFileCautious)
+--import qualified Codec.Compression.GZip as GZip
+import qualified Data.ByteString.Char8 as S8
 import           Conduit (runConduit, (.|))
 import           Control.Monad.Trans.Resource (runResourceT)
-import qualified Data.ByteString.Char8 as S8
 import Data.Text (Text)
 import Data.Aeson
 
 
 openSubtitlesUrl = "http://rest.opensubtitles.org/search"
 
-data Movie = Movie { fileName :: String
-                   , fileSize :: String
-                   , hash     :: String
+data Movie = Movie { fileName      :: String
+                   , fileDirectory :: String
+                   , fileSize      :: String
+                   , hash          :: String
                    } deriving Show
 
 data Mode = SearchByHash | SearchByName
@@ -91,27 +95,35 @@ readMovie :: FilePath -> IO Movie
 readMovie fp = withBinaryFile fp ReadMode $ \h -> do
     hash <- openSubtitlesHash h
     fs <- hFileSize h
-    return $ Movie {fileName = takeBaseName fp, fileSize = show fs, hash = hash}
+    return $ Movie {fileName = takeBaseName fp, fileDirectory = takeDirectory fp, fileSize = show fs, hash = hash}
 
 -- "uses interleaved IO to write the response body to a file in constant memory space."
+--  this also decompresses the gzip while downloading the file
 downloadQueryResult :: Manager -> Movie -> QueryResult -> IO ()
 downloadQueryResult manager movie q = do
     request <- parseRequest $ subDownloadLink q
     runResourceT $ do
         response <- http request manager
-        runConduit $ responseBody response .| sinkFile "teste.srt"
+        let saveLocation = fileDirectory movie ++ '/':fileName movie ++ '.':subFormat q
+        runConduit $ responseBody response .| ungzip .| sinkFileCautious saveLocation
+
+beautifulPrint :: Movie -> String -> IO ()
+beautifulPrint movie message = putStrLn $ "[" ++ fileName movie ++ "] " ++ message
 
 downloadSubtitles mode movie lang = do
     queryResults <- queryForSubtitles mode movie lang
     let bestSubtitle = selectBestSubtitle queryResults
-    print bestSubtitle
+    case bestSubtitle of
+        Nothing -> beautifulPrint movie "Didn't find a good subtitle candidate, skipping"
+        Just q  -> do
+            manager <- newManager defaultManagerSettings
+            beautifulPrint movie $ "Downloading subtitle " ++ subtitlesLink q
+            downloadQueryResult manager movie q
 
 main :: IO ()
 main = do
   args <- getArgs
   let fn = head args
   movie <- readMovie fn
-  print movie
-  putStrLn $ "Hitting " ++ createRequestUrl SearchByHash movie (Just Portuguese)
   downloadSubtitles SearchByHash movie (Just Portuguese)
 
