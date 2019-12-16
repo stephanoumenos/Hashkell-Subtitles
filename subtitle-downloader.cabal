@@ -36,5 +36,10 @@ executable subtitle-downloader
                ,  http-conduit
                ,  pureMD5
                ,  filepath
+               ,  aeson
+               ,  text
+               ,  resourcet
+               ,  conduit
+               ,  conduit-extra
   default-language: Haskell2010
 
