@@ -33,6 +33,5 @@ readMovieAndDownloadSubtitles (Just lang) fn = do
 main :: IO ()
 main = do
     conf <- execParser opts
-    print conf
     mapM_ (readMovieAndDownloadSubtitles $ languageCode conf) (files conf)
 
