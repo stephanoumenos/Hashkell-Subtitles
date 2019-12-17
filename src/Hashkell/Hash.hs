@@ -11,6 +11,7 @@ import           Data.Hex                 (hex)
 import           Data.Word                (Word64)
 import           System.IO                (hFileSize, hSeek, Handle, SeekMode(AbsoluteSeek, SeekFromEnd))
 
+-- https://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
 shortSum :: Handle -> IO Word64
 shortSum h = do
     fs <- hFileSize h
