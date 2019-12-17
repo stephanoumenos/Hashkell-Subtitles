@@ -2,8 +2,8 @@ cabal-version: 2.2
 
 name:           hashkell-subtitles
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/stephanoumenos/Hashkell-Subtitles#readme>
-homepage:       https://github.com/stephanoumenos/Hashkell-Subtitles#readme
+description:    Please see the README on GitHub at <https://github.com/stephanoumenos/Hashkell-Subtitles#README.md>
+homepage:       https://github.com/stephanoumenos/Hashkell-Subtitles#README.md
 bug-reports:    https://github.com/stephanoumenos/Hashkell-Subtitles/issues
 author:         Stefano De Checchi
 maintainer:     bous@stephanoumenos.xyz
@@ -33,6 +33,7 @@ common shared-properties
                ,  http-client
                ,  conduit
                ,  conduit-extra
+               ,  optparse-applicative
   ghc-options: -O2 -Wall
 
 library
@@ -42,7 +43,7 @@ library
                  , Hashkell.Hash
                  , Hashkell.Types
 
-executable subtitle-downloader
+executable hashkell-subtitles
   import: shared-properties
   main-is:        Main.hs
   hs-source-dirs: src

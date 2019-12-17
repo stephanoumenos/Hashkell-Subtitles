@@ -3,7 +3,7 @@
 module Hashkell.Types ( Movie (fileDirectory, fileHash, fileName, fileSize)
                       , readMovie
                       , beautifulPrint
-                      , Language(..)
+                      , LanguageCode
                       , Mode (SearchByHash, SearchByName)
                       , QueryResult(..)
 ) where
@@ -18,7 +18,7 @@ data Movie = Movie { fileName      :: String
                    , fileDirectory :: String
                    , fileSize      :: String
                    , fileHash      :: String
-                   } deriving Show
+                   }
 
 readMovie :: FilePath -> IO Movie
 readMovie fp = withBinaryFile fp ReadMode $ \h -> do
@@ -32,13 +32,7 @@ beautifulPrint movie message = putStrLn $ "[" ++ fileName movie ++ "] " ++ messa
 
 data Mode = SearchByHash | SearchByName
 
-data Language = English | Portuguese | French
-
-instance Show Language where
-    show l = case l of
-                  English    -> "eng"
-                  Portuguese -> "pob"
-                  French     -> "fre"
+type LanguageCode = String
 
 data QueryResult = QueryResult { subFormat       :: String
                                , subDownloadLink :: String
