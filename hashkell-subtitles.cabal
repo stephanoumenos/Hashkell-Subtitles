@@ -34,6 +34,9 @@ common shared-properties
                ,  conduit
                ,  conduit-extra
                ,  optparse-applicative
+               ,  ConfigFile
+               ,  mtl
+               ,  directory
   ghc-options: -O2 -Wall
 
 library
