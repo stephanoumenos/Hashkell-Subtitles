@@ -17,10 +17,14 @@ configFilePath = do
     homeDirectory <- liftIO getHomeDirectory
     return $ homeDirectory ++ "/.config/hashkell-subtitles/config"
 
-configFileLanguage :: FilePath -> IO (Either CPError String)
-configFileLanguage fp = runErrorT $ do
-    cp <- join $ liftIO $ readfile emptyCP fp
-    return =<< get cp "eng" "lang"
+configFileLanguage :: FilePath -> IO String
+configFileLanguage fp = do
+    rv <- runErrorT $ do
+        cp <- join $ liftIO $ readfile emptyCP fp
+        return =<< get cp "eng" "lang"
+    case rv of
+        Left  _    -> return "eng"
+        Right lang -> return lang
 
 defaultLanguage :: IO LanguageCode
 defaultLanguage = do
@@ -28,11 +32,7 @@ defaultLanguage = do
     configFileExists <- doesFileExist fp
     if not configFileExists
         then return "eng"
-        else do
-            configFileLang <- configFileLanguage fp
-            case configFileLang of
-                Left _ -> return "eng"
-                Right lang -> return lang
+        else return =<< configFileLanguage fp
 
 configParser :: Parser Config
 configParser = Config
@@ -47,9 +47,10 @@ opts = info (configParser <**> helper)
 
 
 readMovieAndDownloadSubtitles :: Maybe LanguageCode -> FilePath -> IO ()
-readMovieAndDownloadSubtitles Nothing fn     = do
+readMovieAndDownloadSubtitles Nothing     fn = do
     userDefaultLang <- defaultLanguage
     readMovieAndDownloadSubtitles (Just userDefaultLang) fn
+
 readMovieAndDownloadSubtitles (Just lang) fn = do
     manager <- newManager defaultManagerSettings
     movie <- readMovie fn
