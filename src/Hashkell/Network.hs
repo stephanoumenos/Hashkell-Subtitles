@@ -49,8 +49,8 @@ downloadQueryResult manager movie q = do
         let saveLocation = fileDirectory movie ++ '/':fileName movie ++ '.':subFormat q
         runConduit $ responseBody response .| ungzip .| sinkFileCautious saveLocation
 
-downloadSubtitles :: Mode -> Movie -> LanguageCode -> Manager -> IO ()
-downloadSubtitles mode movie lang manager = do
+downloadSubtitles :: Manager -> Mode -> Movie -> LanguageCode -> IO ()
+downloadSubtitles manager mode movie lang = do
     queryResults <- queryForSubtitles mode movie lang
     let bestSubtitle = selectBestSubtitle queryResults
     case bestSubtitle of

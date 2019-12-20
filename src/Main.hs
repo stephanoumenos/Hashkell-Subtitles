@@ -17,13 +17,16 @@ configFilePath = do
     homeDirectory <- liftIO getHomeDirectory
     return $ homeDirectory ++ "/.config/hashkell-subtitles/config"
 
+internalDefaultLanguage :: LanguageCode
+internalDefaultLanguage = "eng"
+
 configFileLanguage :: FilePath -> IO String
 configFileLanguage fp = do
     rv <- runErrorT $ do
         cp <- join $ liftIO $ readfile emptyCP fp
         return =<< get cp "eng" "lang"
     case rv of
-        Left  _    -> return "eng"
+        Left  _    -> return internalDefaultLanguage
         Right lang -> return lang
 
 defaultLanguage :: IO LanguageCode
@@ -45,21 +48,13 @@ opts = info (configParser <**> helper)
   $ fullDesc <> progDesc "Search subtitles on open subtitles using the file's hash"
              <> header   "Hashkell Subtitles"
 
-
-readMovieAndDownloadSubtitles :: Maybe LanguageCode -> FilePath -> IO ()
-readMovieAndDownloadSubtitles Nothing     fn = do
-    userDefaultLang <- defaultLanguage
-    readMovieAndDownloadSubtitles (Just userDefaultLang) fn
-
-readMovieAndDownloadSubtitles (Just lang) fn = do
-    manager <- newManager defaultManagerSettings
-    movie <- readMovie fn
-    downloadSubtitles SearchByHash movie lang manager
-
 main :: IO ()
 main = do
     commandLineConf <- execParser opts
-    mapM_ (readMovieAndDownloadSubtitles $ languageCode commandLineConf) (files commandLineConf)
-
-
+    manager <- newManager defaultManagerSettings
+    forM_  (files commandLineConf) $ \fn -> do
+        movie <- readMovie fn
+        case languageCode commandLineConf of
+            Nothing -> defaultLanguage >>= downloadSubtitles manager SearchByHash movie
+            Just l  -> downloadSubtitles manager SearchByHash movie l
 
