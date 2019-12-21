@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Hashkell.Types ( Movie (fileDirectory, fileHash, fileName, fileSize)
                       , readMovie
@@ -9,6 +10,7 @@ module Hashkell.Types ( Movie (fileDirectory, fileHash, fileName, fileSize)
 ) where
 
 import Control.Applicative (empty)
+import Control.Exception   (catch, SomeException)
 import Data.Aeson          (parseJSON, Value(Object), FromJSON, (.:))
 import System.FilePath     (takeBaseName, takeDirectory)
 import System.IO           (withBinaryFile, hFileSize, IOMode(ReadMode))
@@ -20,11 +22,16 @@ data Movie = Movie { fileName      :: String
                    , fileHash      :: String
                    }
 
-readMovie :: FilePath -> IO Movie
-readMovie fp = withBinaryFile fp ReadMode $ \h -> do
-    hash <- openSubtitlesHash h
-    fs <- hFileSize h
-    return $ Movie {fileName = takeBaseName fp, fileDirectory = takeDirectory fp, fileSize = show fs, fileHash = hash}
+readMovie :: FilePath -> IO (Maybe Movie)
+readMovie fp = catch go $ \(_ :: SomeException) -> handler
+    where
+        go = withBinaryFile fp ReadMode $ \h -> do
+            hash <- openSubtitlesHash h
+            fs <- hFileSize h
+            return $ Just Movie {fileName = takeBaseName fp, fileDirectory = takeDirectory fp, fileSize = show fs, fileHash = hash}
+        handler = do
+            putStrLn $ "Couldn't read file " ++ fp ++ ", skipping..."
+            return Nothing
 
 beautifulPrint :: Movie -> String -> IO ()
 beautifulPrint movie message = putStrLn $ "[" ++ fileName movie ++ "] " ++ message
@@ -37,7 +44,7 @@ type LanguageCode = String
 data QueryResult = QueryResult { subFormat       :: String
                                , subDownloadLink :: String
                                , subtitlesLink   :: String
-                               } deriving Show
+                               }
 
 instance FromJSON QueryResult where
     parseJSON (Object v) = QueryResult <$> v .: "SubFormat" <*> v .: "SubDownloadLink" <*> v.: "SubtitlesLink"

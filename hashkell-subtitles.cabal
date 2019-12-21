@@ -42,7 +42,8 @@ common shared-properties
 library
   import: shared-properties
   hs-source-dirs: src
-  exposed-modules: Hashkell.Network
+  exposed-modules: Hashkell.Config
+                 , Hashkell.Network
                  , Hashkell.Hash
                  , Hashkell.Types
 
@@ -50,7 +51,8 @@ executable hashkell-subtitles
   import: shared-properties
   main-is:        Main.hs
   hs-source-dirs: src
-  other-modules:  Hashkell.Types
+  other-modules:  Hashkell.Config
+               ,  Hashkell.Types
                ,  Hashkell.Network
                ,  Hashkell.Hash
 

@@ -5,6 +5,13 @@ module Hashkell.Network ( downloadSubtitles
 ) where
 
 
+import Hashkell.Config              (defaultLanguage)
+import Hashkell.Types               ( beautifulPrint
+                                    , Movie(fileDirectory, fileHash, fileName, fileSize)
+                                    , LanguageCode
+                                    , Mode(SearchByHash, SearchByName)
+                                    , QueryResult(..))
+
 import Network.HTTP.Conduit         (responseBody, http, Manager)
 import Network.HTTP.Simple          (parseRequest, setRequestHeader, httpJSONEither, getResponseBody, HttpException)
 import Conduit                      (runConduit, (.|))
@@ -12,11 +19,6 @@ import Control.Monad.Trans.Resource (runResourceT)
 import Control.Exception            (catch)
 import Data.Conduit.Binary          (sinkFileCautious)
 import Data.Conduit.Zlib            (ungzip)
-import Hashkell.Types               ( beautifulPrint
-                                    , Movie(fileDirectory, fileHash, fileName, fileSize)
-                                    , LanguageCode
-                                    , Mode(SearchByHash, SearchByName)
-                                    , QueryResult(..))
 
 openSubtitlesUrl :: String
 openSubtitlesUrl = "http://rest.opensubtitles.org/search"
@@ -54,8 +56,12 @@ downloadQueryResult manager movie q = do
         let saveLocation = fileDirectory movie ++ '/':fileName movie ++ '.':subFormat q
         runConduit $ responseBody response .| ungzip .| sinkFileCautious saveLocation
 
-downloadSubtitles :: Manager -> Mode -> Movie -> LanguageCode -> IO ()
-downloadSubtitles manager mode movie lang = do
+downloadSubtitles :: Manager -> Mode -> Maybe Movie -> Maybe LanguageCode -> IO ()
+downloadSubtitles _ _ Nothing _ = return ()
+downloadSubtitles manager mode movie Nothing = do
+    lang <- defaultLanguage
+    downloadSubtitles manager mode movie (Just lang)
+downloadSubtitles manager mode (Just movie) (Just lang) = do
     queryResults <- catch (queryForSubtitles mode movie lang) $ \(_ :: HttpException) -> do
         beautifulPrint movie "Warning: HtttpException querying for subtitle"
         return []
