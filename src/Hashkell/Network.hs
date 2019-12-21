@@ -12,13 +12,12 @@ import Hashkell.Types               ( beautifulPrint
                                     , Mode(SearchByHash, SearchByName)
                                     , QueryResult(..))
 
-import Network.HTTP.Conduit         (responseBody, http, Manager)
+import Network.HTTP.Conduit         (alwaysDecompress, decompress, responseBody, http, Manager)
 import Network.HTTP.Simple          (parseRequest, setRequestHeader, httpJSONEither, getResponseBody, HttpException)
 import Conduit                      (runConduit, (.|))
 import Control.Monad.Trans.Resource (runResourceT)
 import Control.Exception            (catch)
 import Data.Conduit.Binary          (sinkFileCautious)
-import Data.Conduit.Zlib            (ungzip)
 
 openSubtitlesUrl :: String
 openSubtitlesUrl = "http://rest.opensubtitles.org/search"
@@ -52,9 +51,9 @@ downloadQueryResult :: Manager -> Movie -> QueryResult -> IO ()
 downloadQueryResult manager movie q = do
     request <- parseRequest $ subDownloadLink q
     runResourceT $ do
-        response <- http request manager
+        response <- http request{decompress = alwaysDecompress} manager
         let saveLocation = fileDirectory movie ++ '/':fileName movie ++ '.':subFormat q
-        runConduit $ responseBody response .| ungzip .| sinkFileCautious saveLocation
+        runConduit $ responseBody response .| sinkFileCautious saveLocation
 
 downloadSubtitles :: Manager -> Mode -> Maybe Movie -> Maybe LanguageCode -> IO ()
 downloadSubtitles _ _ Nothing _ = return ()
