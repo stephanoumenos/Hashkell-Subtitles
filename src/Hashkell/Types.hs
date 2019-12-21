@@ -30,7 +30,7 @@ readMovie fp = catch go $ \(_ :: SomeException) -> handler
             fs <- hFileSize h
             return $ Just Movie {fileName = takeBaseName fp, fileDirectory = takeDirectory fp, fileSize = show fs, fileHash = hash}
         handler = do
-            putStrLn $ "Couldn't read file " ++ fp ++ ", skipping..."
+            putStrLn $ "[" ++ fp ++ "] " ++ "Couldn't read file, skipping..."
             return Nothing
 
 beautifulPrint :: Movie -> String -> IO ()
