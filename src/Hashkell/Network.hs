@@ -62,12 +62,13 @@ downloadSubtitles manager mode movie Nothing = do
     downloadSubtitles manager mode movie (Just lang)
 downloadSubtitles manager mode (Just movie) (Just lang) = do
     queryResults <- catch (queryForSubtitles mode movie lang) $ \(_ :: HttpException) -> do
-        beautifulPrint movie "Warning: HtttpException querying for subtitle"
+        beautifulPrint movie "Error: HtttpException querying for subtitle, skipping..."
         return []
     let bestSubtitle = selectBestSubtitle queryResults
     case bestSubtitle of
         Nothing -> beautifulPrint movie "Didn't find a good subtitle candidate, skipping"
         Just q  -> do
             beautifulPrint movie $ "Downloading subtitle " ++ subtitlesLink q
-            downloadQueryResult manager movie q
+            catch (downloadQueryResult manager movie q) $ \(_ :: HttpException) -> 
+                beautifulPrint movie "Error: Couldn't download subtitle, skipping... "
 
