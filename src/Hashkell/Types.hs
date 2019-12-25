@@ -9,12 +9,13 @@ module Hashkell.Types ( Movie (fileDirectory, fileHash, fileName, fileSize)
                       , QueryResult(..)
 ) where
 
+import Hashkell.Hash       (openSubtitlesHash)
+
 import Control.Applicative (empty)
 import Control.Exception   (catch, SomeException)
 import Data.Aeson          (parseJSON, Value(Object), FromJSON, (.:))
-import System.FilePath     (takeBaseName, takeDirectory)
+import System.FilePath     (takeFileName, takeDirectory)
 import System.IO           (withBinaryFile, hFileSize, IOMode(ReadMode))
-import Hashkell.Hash       (openSubtitlesHash)
 
 data Movie = Movie { fileName      :: String
                    , fileDirectory :: String
@@ -28,14 +29,16 @@ readMovie fp = catch go $ \(_ :: SomeException) -> handler
         go = withBinaryFile fp ReadMode $ \h -> do
             hash <- openSubtitlesHash h
             fs <- hFileSize h
-            return $ Just Movie {fileName = takeBaseName fp, fileDirectory = takeDirectory fp, fileSize = show fs, fileHash = hash}
+            return $ Just Movie { fileName      = takeFileName fp
+                                , fileDirectory = takeDirectory fp
+                                , fileSize      = show fs
+                                , fileHash      = hash}
         handler = do
             putStrLn $ "[" ++ fp ++ "] " ++ "Couldn't read file, skipping..."
             return Nothing
 
 beautifulPrint :: Movie -> String -> IO ()
 beautifulPrint movie message = putStrLn $ "[" ++ fileName movie ++ "] " ++ message
-
 
 data Mode = SearchByHash | SearchByName
 
