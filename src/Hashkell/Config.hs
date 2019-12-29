@@ -6,7 +6,7 @@ module Hashkell.Config ( execParser
 
 import Hashkell.Types (LanguageCode)
 
-import Control.Monad.Error
+import Control.Monad.Except (liftIO, join, runExceptT)
 import Data.ConfigFile
 import Options.Applicative
 import System.Directory    (getHomeDirectory, doesFileExist)
@@ -25,9 +25,9 @@ internalDefaultLanguage = "eng"
 
 configFileLanguage :: FilePath -> IO String
 configFileLanguage fp = do
-    rv <- runErrorT $ do
+    rv <- runExceptT $ do
         cp <- join $ liftIO $ readfile emptyCP fp
-        return =<< get cp "eng" "lang"
+        get cp "eng" "lang"
     case rv of
         Left  _    -> return internalDefaultLanguage
         Right lang -> return lang
@@ -38,7 +38,7 @@ defaultLanguage = do
     configFileExists <- doesFileExist fp
     if not configFileExists
         then return "eng"
-        else return =<< configFileLanguage fp
+        else configFileLanguage fp
 
 configParser :: Parser CommandLineConfig
 configParser = CommandLineConfig
