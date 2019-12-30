@@ -13,10 +13,10 @@ import Hashkell.Types               ( beautifulPrint
                                     , QueryResult(..))
 
 import Network.HTTP.Conduit         (responseBody, http, Manager)
-import Network.HTTP.Simple          (parseRequest, setRequestHeader, httpJSONEither, getResponseBody, HttpException)
+import Network.HTTP.Simple          (parseRequest, setRequestHeader, httpJSONEither, getResponseBody)
 import Conduit                      (runConduit, (.|))
 import Control.Monad.Trans.Resource (runResourceT)
-import Control.Exception            (catch)
+import Control.Exception            (catch, SomeException)
 import Data.Conduit.Binary          (sinkFileCautious)
 import Data.Conduit.Zlib            (ungzip)
 
@@ -62,7 +62,7 @@ downloadSubtitles manager mode movie Nothing = do
     lang <- defaultLanguage
     downloadSubtitles manager mode movie (Just lang)
 downloadSubtitles manager mode (Just movie) (Just lang) = do
-    queryResults <- catch (queryForSubtitles mode movie lang) $ \(_ :: HttpException) -> do
+    queryResults <- catch (queryForSubtitles mode movie lang) $ \(_ :: SomeException) -> do
         beautifulPrint movie "Error: HtttpException querying for subtitle, skipping..."
         return []
     let bestSubtitle = selectBestSubtitle queryResults
@@ -70,6 +70,6 @@ downloadSubtitles manager mode (Just movie) (Just lang) = do
         Nothing -> beautifulPrint movie "Didn't find a good subtitle candidate, skipping"
         Just q  -> do
             beautifulPrint movie $ "Downloading subtitle " ++ subtitlesLink q
-            catch (downloadQueryResult manager movie q) $ \(_ :: HttpException) -> 
+            catch (downloadQueryResult manager movie q) $ \(_ :: SomeException) -> 
                 beautifulPrint movie "Error: Couldn't download subtitle, skipping... "
 
