@@ -63,7 +63,7 @@ downloadSubtitles manager mode movie Nothing = do
     downloadSubtitles manager mode movie (Just lang)
 downloadSubtitles manager mode (Just movie) (Just lang) = do
     queryResults <- catch (queryForSubtitles mode movie lang) $ \(_ :: SomeException) -> do
-        beautifulPrint movie "Error: HtttpException querying for subtitle, skipping..."
+        beautifulPrint movie "Error: Couldn't query for subtitle, skipping..."
         return []
     let bestSubtitle = selectBestSubtitle queryResults
     case bestSubtitle of
