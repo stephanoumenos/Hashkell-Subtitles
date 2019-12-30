@@ -37,6 +37,7 @@ common shared-properties
                ,  ConfigFile
                ,  mtl
                ,  directory
+               ,  async
   ghc-options: -O2 -Wall
 
 library

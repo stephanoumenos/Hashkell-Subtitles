@@ -23,6 +23,8 @@ hashkell-subtitles -l pob foo.mkv bar.mkv RickyAndMorty/*.mkv
 
 It is going to automatically decompress the downloaded file and save it with the same name as the video file to make things easier.
 
+The program also defaults to a async behavior by default (i.e. it will try to download all subtitles at once). You can use the -s (or --sequential) parameter to avoid that if you want.
+
 ## Config file
 
 You can also set your default language in a config file so you don't have to pass the -l argument every time.
@@ -40,7 +42,7 @@ Maybe I'll provide a compiled package or a docker image one day.
 
 ## Future features
 
-- [] Add parallelism
+- [X] Add parallelism
 - [X] Support a config file
 
 ## Bugs
