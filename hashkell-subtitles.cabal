@@ -38,6 +38,7 @@ common shared-properties
                ,  mtl
                ,  directory
                ,  async
+               ,  containers
   ghc-options: -O2 -Wall
 
 library
