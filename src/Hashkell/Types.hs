@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Hashkell.Types ( Movie (fileDirectory, fileHash, fileName, fileSize)
+module Hashkell.Types ( Movie (..)
                       , readMovie
                       , beautifulPrint
                       , LanguageCode
@@ -14,10 +14,11 @@ import Hashkell.Hash       (openSubtitlesHash)
 import Control.Applicative (empty)
 import Control.Exception   (catch, SomeException)
 import Data.Aeson          (parseJSON, Value(Object), FromJSON, (.:))
-import System.FilePath     (takeFileName, takeDirectory)
+import System.FilePath     (takeBaseName, takeExtension, takeDirectory)
 import System.IO           (withBinaryFile, hFileSize, IOMode(ReadMode))
 
 data Movie = Movie { fileName      :: String
+                   , fileExtension :: String
                    , fileDirectory :: String
                    , fileSize      :: String
                    , fileHash      :: String
@@ -29,7 +30,8 @@ readMovie fp = catch go $ \(_ :: SomeException) -> handler
         go = withBinaryFile fp ReadMode $ \h -> do
             hash <- openSubtitlesHash h
             fs <- hFileSize h
-            return $ Just Movie { fileName      = takeFileName fp
+            return $ Just Movie { fileName      = takeBaseName fp
+                                , fileExtension = takeExtension fp
                                 , fileDirectory = takeDirectory fp
                                 , fileSize      = show fs
                                 , fileHash      = hash}
@@ -38,7 +40,7 @@ readMovie fp = catch go $ \(_ :: SomeException) -> handler
             return Nothing
 
 beautifulPrint :: Movie -> String -> IO ()
-beautifulPrint movie message = putStrLn $ "[" ++ fileName movie ++ "] " ++ message
+beautifulPrint movie message = putStrLn $ "[" ++ fileName movie ++ fileExtension movie ++ "] " ++ message
 
 data Mode = SearchByHash | SearchByName
 
