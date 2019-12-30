@@ -13,6 +13,7 @@ import qualified Data.Set as         S(fromList, member, Set)
 import           Options.Applicative
 import           System.Directory     (getHomeDirectory, doesFileExist)
 import           System.FilePath      (takeExtension)
+import           System.FilePath.Find
 
 -- Config File Config --
 
@@ -43,10 +44,10 @@ defaultLanguage = do
 
 -- Comand Line Config --
 
-data CommandLineConfig = CommandLineConfig { languageCode :: Maybe LanguageCode
-                                           , sequential   :: Maybe Bool
-                                           , recursive    :: Maybe Bool
-                                           , files        :: [FilePath]
+data CommandLineConfig = CommandLineConfig { languageCode     :: Maybe LanguageCode
+                                           , sequential       :: Maybe Bool
+                                           , recursive        :: Maybe Bool
+                                           , files            :: [FilePath]
                                            }
 
 languageHelpMessage :: String
@@ -57,7 +58,7 @@ sequentialHelpMessage :: String
 sequentialHelpMessage = "If present program will download subtitles sequentially i.e. not use async"
 
 recursiveHelpMessage :: String
-recursiveHelpMessage = "Will try to find files recursively in the directories"
+recursiveHelpMessage = "Will try to find files recursively"
 
 configParser :: Parser CommandLineConfig
 configParser = CommandLineConfig
@@ -83,9 +84,16 @@ videoExtensions = S.fromList
                   , ".vob", ".vro", ".wm", ".wmv", ".wmx", ".wrap", ".wvx", ".wx", ".x264", ".xvid"
                   ]
 
-providedVideoFiles :: CommandLineConfig -> [FilePath]
-providedVideoFiles c = filter isValidExtension (files c)
-    where isValidExtension fp = S.member (takeExtension fp) videoExtensions
-                           
+isVideoExtension :: FilePath -> Bool
+isVideoExtension fp = S.member (takeExtension fp) videoExtensions
 
+recursivelyFindVideoFiles :: CommandLineConfig -> IO [FilePath]
+recursivelyFindVideoFiles c =
+    filter isVideoExtension . join <$> mapM (find always (fileType ==? RegularFile)) (files c)
+
+providedVideoFiles :: CommandLineConfig -> IO [FilePath]
+providedVideoFiles c =
+    if recursive c == Just True
+        then recursivelyFindVideoFiles c
+        else return $ filter isVideoExtension (files c)
 

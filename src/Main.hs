@@ -18,7 +18,7 @@ main = do
                           then forM_
                           else forConcurrently_
 
-    let videoFiles = providedVideoFiles commandLineConf
+    videoFiles <- providedVideoFiles commandLineConf
 
     forStrategy videoFiles $ \fn -> do
         movie <- readMovie fn

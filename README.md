@@ -21,9 +21,21 @@ Then just run the program in whichever file you want (multiple files are accepte
 hashkell-subtitles -l pob foo.mkv bar.mkv RickyAndMorty/*.mkv
 ```
 
-It is going to automatically decompress the downloaded file and save it with the same name as the video file to make things easier.
+It is going to automatically decompress the downloaded file and save it with the same name as the video file to make things easier. (Beware: it will overwrite existing .srt files)
 
-The program also defaults to a async behavior by default (i.e. it will try to download all subtitles at once). You can use the -s (or --sequential) parameter to avoid that if you want.
+It will also check if the file has a valid video extension (e.g. mp4)
+
+The program also defaults to a async behavior (i.e. it will try to download all subtitles at once). You can use the -s (or --sequential) parameter to avoid that if you want.
+
+## Flags
+
+All of the flags below are optional
+
+| short | long | use |
+|:-----:|:----:|:---:|
+| -s    | --sequential    | Don't use async, i.e. download subtitles sequentially |
+| -l    | --language-code | Language code to download subtitles for               |
+| -r    | --recursive     | Search files recursively if directories are provided  |
 
 ## Config file
 

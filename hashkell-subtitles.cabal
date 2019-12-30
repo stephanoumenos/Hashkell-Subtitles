@@ -39,6 +39,7 @@ common shared-properties
                ,  directory
                ,  async
                ,  containers
+               ,  filemanip
   ghc-options: -O2 -Wall
 
 library
