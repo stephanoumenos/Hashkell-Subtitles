@@ -47,10 +47,14 @@ To do that, just create a text file in ```~/.config/hashkell-subtitles/config```
 lang = SUBSTITUTE_YOUR_LANGUAGE_CODE_HERE
 ```
 
+## Installing
+
+There's a .deb package available on [releases](https://github.com/stephanoumenos/Hashkell-Subtitles/releases)!
+If you don't use a debian based distro, see building below.
+
 ## Building
 
 Make sure you've got stack installed. Clone this repo, cd there and just type "stack install".
-Maybe I'll provide a compiled package or a docker image one day.
 
 ## Future features
 
