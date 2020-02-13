@@ -2,8 +2,6 @@
 
 Command line utility to automatically download subtitles for your files using their calculated hash.
 
-(This is still being tested, but should be _functional_ for most files)
-
 ## Usage
 
 First go to [Open Subtitles](https://www.opensubtitles.org) and find out your language code. You can do that by just selecting your language, pressing Search and it's going to be at the end of the url.
@@ -60,7 +58,3 @@ Make sure you've got stack installed. Clone this repo, cd there and just type "s
 
 - [X] Add parallelism
 - [X] Support a config file
-
-## Bugs
-
-- There's currently a bug in the Open Subtitles REST API making it don't correctly read hashes starting with one or more zeros. There's nothing much I can do about that at the moment except reporting it (which I already have), so this program shouldn't work in about ~ 10% of the files right now. :(
